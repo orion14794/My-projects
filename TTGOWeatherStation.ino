@@ -22,11 +22,11 @@ typedef struct {
 } Towns;
 
 // User data - EDIT
-const char* ssid = "DelYunquePR";
-const char* password = "johlanys14974";
-const String key = "3b7984948521e28e9d9b7bc7f0bb13bf";
+const char* ssid = "your SSID"; //change this line with your WiFi SSID
+const char* password = "Password"; //change this line with your WiFi network password
+const String key = "3b2345521w48e9d9b7bcjk0bb13bu"; //change this line with your API key
 // Select your towns
-const Towns towns[] PROGMEM = {
+const Towns towns[] PROGMEM = { //change with desired towns/city below this line
   {"Cape Coral", "US"},
   {"San Sebastian", "PR"},
   {"Dededo", "GU"},
@@ -78,7 +78,7 @@ char* footer_pos;
 char* footer_end;
 char footer_30;
 
-void setup(void) {
+void setup(void) { //for battery to work, the 2 lines below were added.
   pinMode(15, OUTPUT);
   digitalWrite(15, 1);
   Serial.begin(115200);
