@@ -69,6 +69,8 @@ I got the original code for study, I organized it and many new features!
 
 Here is the original [REPO](https://github.com/VolosR/TTGOWeatherStation).
 
+Here is modified version of original [REPO](https://github.com/JuniorPolegato/TTGOWeatherStation).
+
 Here is the font editor [REPO](https://github.com/JuniorPolegato/Adafruit-GFX-font-editor).
 
 Here is the image converter [REPO](https://github.com/JuniorPolegato/image-to-rgb565).
