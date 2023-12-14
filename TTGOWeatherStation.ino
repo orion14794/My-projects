@@ -1,32 +1,30 @@
+
 #include <TFT_eSPI.h>        // Hardware-specific: user must select board in library
 #include <ArduinoJson.h>     // https://github.com/bblanchon/ArduinoJson.git
 #include <ESP32Time.h>       // replace #include <NTPClient.h>  // https://github.com/taranais/NTPClient
 #include <WiFi.h>
 #include <HTTPClient.h>
-
 #include "animation.h"
 #include "icons.h"
 #include "Orbitron_Bold_14.h"
 #include "Orbitron_Medium_20.h"
-
 #define TFT_GREY 0x5AEB
 #define TFT_LIGHTBLUE 0x01E9
 #define TFT_DARKRED 0xA041
 #define TFT_BLUE 0x5D9B
 #define PIN_BUTTON1 0
 #define PIN_BUTTON2 14
-
 typedef struct {
   const char* town;
   const char* country;
 } Towns;
 
 // User data - EDIT
-const char* ssid = "your SSID"; //change this line with your WiFi SSID
-const char* password = "Password"; //change this line with your WiFi network password
-const String key = "3b2345521w48e9d9b7bcjk0bb13bu"; //change this line with your API key
+const char* ssid = "Your SSID";
+const char* password = "Password";
+const String key = "12334456879809"; //openweather api key
 // Select your towns
-const Towns towns[] PROGMEM = { //change with desired towns/city below this line
+const Towns towns[] PROGMEM = {
   {"Cape Coral", "US"},
   {"San Sebastian", "PR"},
   {"Dededo", "GU"},
@@ -90,21 +88,17 @@ void setup(void) { //for battery to work, the 2 lines below were added.
   tft.fillScreen(TFT_LIGHTGREY);
   tft.setTextColor(TFT_BLACK, TFT_LIGHTGREY);
   tft.setTextSize(2);
-
   spr.setColorDepth(16);
   spr.createSprite(50, 50);
   spr.setSwapBytes(true);
-
   ledcSetup(pwmLedChannelTFT, pwmFreq, pwmResolution);
   ledcAttachPin(TFT_BL, pwmLedChannelTFT);
   ledcWrite(pwmLedChannelTFT, backlight[curBright]);
 
   // Wi-Fi connection
-
   tft.println(String("* ") + ssid + " *\n");
   tft.print("Connecting");
   WiFi.begin(ssid, password);
-
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     tft.print(".");
@@ -116,56 +110,43 @@ void setup(void) { //for battery to work, the 2 lines below were added.
   delay(3000);
 
   // Layout
-
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
   tft.setTextSize(1);
   tft.fillScreen(TFT_BLACK);
   tft.setSwapBytes(true);
-
   tft.setCursor(2, 306, 2);
   tft.println(WiFi.localIP());
-
   tft.setCursor(128, 299, 1);
   tft.println("Bright");
-
   tft.setCursor(116, 140, 2);
   tft.println("Seconds");
-
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-
   tft.setCursor(2, 140, 2);
   tft.println("Temperature  ");
-
   tft.setCursor(3, 182, 2);
   tft.println("Humidity      ");
-
   tft.setTextColor(TFT_WHITE, TFT_BLACK);
-
   tft.fillRect(90, 142, 4, 74, TFT_GREY);
   tft.fillRect(0, 220, 170, 4, TFT_GREY);
-
   tft.setCursor(18, 70);
   tft.setFreeFont(&Orbitron_Medium_20);
   if (tft.textWidth(towns[curTown].town) > tft.width() - 12)
     tft.setFreeFont(&Orbitron_Bold_14);
   tft.println(towns[curTown].town);
-
   for (int i = 0; i <= curBright; i++)
     tft.fillRect(128 + (i * 7), 312, 3, 10, TFT_BLUE);
-
   getLocalInfo();
   getData();
 }
 
 void loop() {
+
   tft.pushImage(14, 80,  135, 60, animation[frame++]);
   if (frame == frames) frame = 0;
-
   spr.pushSprite(x_spr, 86, 0x94b2);
   x_spr += dir_spr;
   if (x_spr == 110) dir_spr = -1;
   else if (x_spr == 0) dir_spr = 1;
-
   if (digitalRead(PIN_BUTTON2) == 0) {
     if (press2 == 0) {
       press2 = 1;
@@ -252,7 +233,6 @@ void loop() {
 
   delay(200);
 }
-
 bool getData() {
   String icon = "";
   if (WiFi.status() == WL_CONNECTED) {  // Check the current connection status
@@ -319,24 +299,23 @@ bool getData() {
         tft.setCursor(4, 216);
         tft.println(curHumidity + "%");
       }
-
+      
       char buffer[6];
       time_t _time;
-
+      
       _name = "   " + _name;
-
       _time = atoi(_dt_capture.c_str()) + curTimezone;
       strftime(buffer, 6, "%H:%M", gmtime(&_time));
       _dt_capture = buffer;
-
+      
       _time = atoi(_sunrise.c_str()) + curTimezone;
       strftime(buffer, 6, "%H:%M", gmtime(&_time));
       _sunrise = buffer;
-
+      
       _time = atoi(_sunset.c_str()) + curTimezone;
       strftime(buffer, 6, "%H:%M", gmtime(&_time));
       _sunset = buffer;
-
+      
       updateFooter(_name + " weather: " + _description +
                    _name + " feels like: " + _feels_like + "°F" +
                    _name + " pressure: " + _pressure + "mb" +
@@ -349,20 +328,20 @@ bool getData() {
                    _name + " sunrise: " + _sunrise +
                    _name + " sunset: " + _sunset +
                    "   Weather from https://openweathermap.org/");
-
+                   
     }
     else {
       Serial.println("Error on HTTP request [" + String(httpCode) + "]");
       return false;
     }
-
+    
     http.end(); //Free the resources
   }
   else {
     Serial.println("No internet connection!");
     return false;
   }
-
+  
   Serial.println("_____________________________________________________________");
   Serial.println("Town: [" + String(curTown) + "] " + towns[curTown].town + ", " + towns[curTown].country);
   Serial.println("Date and time: " + rtc.getDateTime());
@@ -407,16 +386,16 @@ bool getLocalInfo() {
   if (WiFi.status() == WL_CONNECTED) {  // Check the current connection status
     HTTPClient http;
     int httpCode;
-
+    
     http.begin("http://ipinfo.io/");
     http.addHeader("Accept", "application/json");
     httpCode = http.GET();  // Make the request
-
+    
     if (httpCode == 200) {  // Check for the returning code
       String payload = http.getString();
       StaticJsonDocument<1000> doc;
       deserializeJson(doc, payload.c_str());
-
+      
       String _ip = doc["ip"];
       String _city = doc["city"];
       String _region = doc["region"];
@@ -425,7 +404,7 @@ bool getLocalInfo() {
       String _org = doc["org"];
       String _postal = doc["postal"];
       String _tz = doc["timezone"];
-
+      
       ipinfo_io = "   Wi-Fi IP: " + WiFi.localIP().toString() +
                   "   Internet IP: " + _ip +
                   "   Local city: " + _city +
@@ -440,7 +419,7 @@ bool getLocalInfo() {
       Serial.println("Error on HTTP request [" + String(httpCode) + "]");
       return false;
     }
-
+    
     http.end(); //Free the resources
   }
   else {
